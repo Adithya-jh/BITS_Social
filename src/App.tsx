@@ -1,6 +1,5 @@
 import "./App.css";
 import FooterBar from "./components/layout/FooterBar.tsx";
-import Header from "./components/layout/Header.tsx";
 import {
   BrowserRouter as Router,
   Routes,
