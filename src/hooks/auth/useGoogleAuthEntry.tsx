@@ -30,7 +30,7 @@ export function useGoogleAuthEntry() {
         console.log("User authenticated with data: " + JSON.stringify(data));
         localStorage.setItem("jwt", data.token);
         await queryClient.invalidateQueries({ queryKey: ["currentUser"] });
-        window.location.reload();
+        window.location.href = "/home";
       } catch (err) {
         console.error("Login error:", err);
       }

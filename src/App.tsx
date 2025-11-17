@@ -90,14 +90,15 @@ function App() {
 
             <div className="flex-1 overflow-y-auto scrollbar-blue bg-(--background-main)">
               <Routes>
-                <Route path="/" element={<HomePage />} />
-                <Route path="profile/:ID" element={<ProfilePage />} />
-                <Route path="tweet/:postId" element={<FullTweet />} />
-                <Route path="saved" element={<SavedPage />} />
-                <Route path="explore" element={<ExplorePage />} />
-                <Route path="notifications" element={<NotificationPage />} />
-                <Route path="about" element={<AboutPage />} />
-                <Route path="*" element={<Navigate to="/" replace />} />
+                <Route path="/" element={<Navigate to="/home" replace />} />
+                <Route path="/home" element={<HomePage />} />
+                <Route path="/profile/:ID" element={<ProfilePage />} />
+                <Route path="/tweet/:postId" element={<FullTweet />} />
+                <Route path="/saved" element={<SavedPage />} />
+                <Route path="/explore" element={<ExplorePage />} />
+                <Route path="/notifications" element={<NotificationPage />} />
+                <Route path="/about" element={<AboutPage />} />
+                <Route path="*" element={<Navigate to="/home" replace />} />
               </Routes>
               <Toaster
                 position="bottom-center"
@@ -125,10 +126,20 @@ function App() {
             <ModalManager />
             <Routes>
               <Route
+                path="/"
+                element={
+                  token && !isError ? (
+                    <Navigate to="/home" replace />
+                  ) : (
+                    <Navigate to="/login" replace />
+                  )
+                }
+              />
+              <Route
                 path="/login"
                 element={
                   token && !isError ? (
-                    <Navigate to="/" replace />
+                    <Navigate to="/home" replace />
                   ) : (
                     <LoginPage />
                   )
