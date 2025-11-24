@@ -11,6 +11,7 @@ import { ExtraMainTweetRows } from "./TweetLayout/ExtraMainTweetRows.tsx";
 import { TweetImagesRow } from "./TweetLayout/TweetImagesRow.tsx";
 import { PostInteractionRow } from "./TweetLayout/PostInteractionRow.tsx";
 import { Pinned } from "./tweetInfo/Pinned.tsx";
+import { useFeedFilter } from "../../context/FeedFilterContext.tsx";
 
 type TweetProps = {
   postId: number;
@@ -29,6 +30,7 @@ function Tweet({
   isPinned,
   repostUserId,
 }: TweetProps) {
+  const { filter } = useFeedFilter();
   const { data: post } = usePost(postId);
 
   const { data: postUser } = useUser(post?.userId ?? -1);
@@ -59,6 +61,32 @@ function Tweet({
       navigate("/tweet/" + postId);
     }
   };
+
+  const matchesPromptFilter = (() => {
+    const keyword = filter.keyword?.trim();
+    const topic = filter.topic;
+    if (!keyword && !topic) return true;
+    if (!post) return false;
+    const haystack = [
+      post.text,
+      postUser?.displayName,
+      postUser?.username,
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+    const keywordMatch = keyword
+      ? haystack.includes(keyword.toLowerCase())
+      : true;
+    const topicMatch = topic
+      ? post.text?.toLowerCase().includes(topic.toLowerCase())
+      : true;
+    return keywordMatch && topicMatch;
+  })();
+
+  if (!matchesPromptFilter) {
+    return null;
+  }
 
   return (
     <>

@@ -14,6 +14,7 @@ import SavedPage from "./components/pages/SavedPage.tsx";
 import NotificationPage from "./components/pages/NotificationPage.tsx";
 import FullTweet from "./components/tweet/FullTweet.tsx";
 import { HeaderContentProvider } from "./context/HeaderContentProvider.tsx";
+import { FeedFilterProvider } from "./context/FeedFilterContext.tsx";
 import { Toaster, type DefaultToastOptions } from "react-hot-toast";
 import AboutPage from "./components/pages/AboutPage.tsx";
 import ExplorePage from "./components/pages/ExplorePage.tsx";
@@ -117,9 +118,10 @@ function App() {
     <Router>
       <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
         <ModalProvider>
-          <HeaderContentProvider>
-            <ModalManager />
-            <Routes>
+          <FeedFilterProvider>
+            <HeaderContentProvider>
+              <ModalManager />
+              <Routes>
               <Route
                 path="/"
                 element={
@@ -141,8 +143,9 @@ function App() {
                 }
               />
               <Route path="/*" element={<ProtectedApp />} />
-            </Routes>
-          </HeaderContentProvider>
+              </Routes>
+            </HeaderContentProvider>
+          </FeedFilterProvider>
         </ModalProvider>
       </GoogleOAuthProvider>
     </Router>

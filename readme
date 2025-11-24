@@ -8,3 +8,11 @@
 # SELECT * FROM "User" LIMIT 5;
 # SELECT * FROM "Post" ORDER BY id DESC LIMIT 5;
 # \q                          -- quit
+
+
+# docker compose exec cockroach-node1 ./cockroach sql \
+#   --insecure --host=cockroach-node1:26257
+
+# \c defaultdb 
+
+# SHOW TABLES; 

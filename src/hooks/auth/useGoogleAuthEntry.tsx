@@ -1,5 +1,5 @@
 import { useGoogleLogin } from "@react-oauth/google";
-import { API_URL } from "../../constants/env.ts";
+import { API_URL, GOOGLE_REDIRECT_URI } from "../../constants/env.ts";
 import { useQueryClient } from "@tanstack/react-query";
 
 export function useGoogleAuthEntry() {
@@ -7,6 +7,8 @@ export function useGoogleAuthEntry() {
 
   return useGoogleLogin({
     flow: "implicit",
+    ux_mode: "popup",
+    redirect_uri: GOOGLE_REDIRECT_URI,
     onSuccess: async (tokenResponse) => {
       try {
         const res = await fetch(`${API_URL}/api/auth/google-login`, {

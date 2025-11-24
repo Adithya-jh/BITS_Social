@@ -11,6 +11,8 @@ import Tweet from "../tweet/Tweet.tsx";
 import { FaListUl } from "react-icons/fa";
 import { ComposePoll } from "./ComposePoll.tsx";
 import { useCurrentUser } from "../../hooks/auth/useCurrentUser.tsx";
+import { PromptFilterMenu } from "./PromptFilterMenu.tsx";
+import { VoiceComposeButton } from "./VoiceComposeButton.tsx";
 
 type ComposeTweetProps = {
   parentId?: number;
@@ -111,6 +113,16 @@ function ComposeTweet({
                     ? "hover:cursor-pointer"
                     : "opacity-50 hover:cursor-not-allowed"
                 }`}
+              />
+              <PromptFilterMenu disabled={false} />
+              <VoiceComposeButton
+                disabled={isPoll}
+                onTextReady={(generatedText) =>
+                  setTextInput((prev) => {
+                    if (!prev.trim()) return generatedText;
+                    return `${prev.trim()}\n${generatedText}`;
+                  })
+                }
               />
             </div>
             <div className="w-full h-full justify-end flex gap-3 items-center">
