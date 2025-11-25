@@ -1,0 +1,199 @@
+generator client {
+  provider = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          Int       @id @default(autoincrement())
+  googleId    String?   @unique
+  email       String?   @unique
+  username    String?   @unique
+  displayName String
+  profilePictureUrl String @default("https://api.dicebear.com/8.x/thumbs/svg?seed=xclone")
+  bannerImageUrl String?
+  bio         String?   @db.VarChar(280)
+  pinnedPostId Int? @unique
+  verified    Boolean   @default(false)
+  campus      Campus?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  posts       Post[]
+  likes       Like[]
+  bookmarks   Bookmark[]
+  retweets    Retweet[]
+  pollVotes   PollVote[]
+  notificationsSent     Notification[] @relation("NotificationSender")
+  notificationsReceived Notification[] @relation("NotificationReceiver")
+  feedback    Feedback[]
+
+  followers Follow[] @relation("Followers")
+  following Follow[] @relation("Following")
+  pinnedPost Post? @relation("UserPinnedPost", fields: [pinnedPostId], references: [id])
+}
+
+model Follow {
+  id           Int      @id @default(autoincrement())
+  followerId   Int
+  followingId  Int
+  createdAt    DateTime @default(now())
+
+  follower User @relation("Following", fields: [followerId], references: [id])
+  following User @relation("Followers", fields: [followingId], references: [id])
+
+  @@unique([followerId, followingId])
+}
+
+model Post {
+  id        Int      @id @default(autoincrement())
+  authorId  Int
+  text      String   @db.Text
+  mediaUrls Json?
+  parentId  Int?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  author  User  @relation(fields: [authorId], references: [id])
+  parent  Post? @relation("PostReplies", fields: [parentId], references: [id])
+  replies Post[] @relation("PostReplies")
+  likes   Like[]
+  bookmarks Bookmark[]
+  media   PostMedia[]
+  retweets Retweet[]
+  notifications Notification[]
+  poll     Poll?
+  pinnedBy User? @relation("UserPinnedPost")
+}
+
+model Like {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  postId    Int
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+  post Post @relation(fields: [postId], references: [id])
+
+  @@unique([userId, postId])
+}
+
+model Retweet {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  postId    Int
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+  post Post @relation(fields: [postId], references: [id])
+
+  @@unique([userId, postId])
+}
+
+model Bookmark {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  postId    Int
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+  post Post @relation(fields: [postId], references: [id])
+
+  @@unique([userId, postId])
+}
+
+model Notification {
+  id           Int               @id @default(autoincrement())
+  type         NotificationType
+  senderId     Int
+  receiverId   Int
+  referenceId  Int?
+  message      String?
+  postId       Int?
+  seen         Boolean           @default(false)
+  createdAt    DateTime          @default(now())
+
+  sender User @relation("NotificationSender", fields: [senderId], references: [id])
+  receiver User @relation("NotificationReceiver", fields: [receiverId], references: [id])
+  post   Post? @relation(fields: [postId], references: [id])
+}
+
+enum NotificationType {
+  FOLLOW
+  LIKE
+  REPLY
+  REPOST
+  MESSAGE
+}
+
+model PostMedia {
+  id        Int      @id @default(autoincrement())
+  postId    Int
+  fileName  String
+  mimeType  String
+  url       String
+  createdAt DateTime @default(now())
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+}
+
+model Poll {
+  id        Int      @id @default(autoincrement())
+  postId    Int      @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  post    Post        @relation(fields: [postId], references: [id])
+  choices PollChoice[]
+  votes   PollVote[]
+}
+
+model PollChoice {
+  id        Int      @id @default(autoincrement())
+  pollId    Int
+  choice    String
+  createdAt DateTime @default(now())
+
+  poll  Poll       @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  votes PollVote[]
+}
+
+model PollVote {
+  id        Int      @id @default(autoincrement())
+  pollId    Int
+  choiceId  Int
+  userId    Int
+  createdAt DateTime @default(now())
+
+  poll   Poll       @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  choice PollChoice @relation(fields: [choiceId], references: [id], onDelete: Cascade)
+  user   User       @relation(fields: [userId], references: [id])
+
+  @@unique([pollId, userId])
+}
+
+model Feedback {
+  id        Int       @id @default(autoincrement())
+  userId    Int?
+  type      FeedbackType
+  text      String
+  createdAt DateTime  @default(now())
+
+  user User? @relation(fields: [userId], references: [id])
+}
+
+enum FeedbackType {
+  BUG
+  FEEDBACK
+}
+
+enum Campus {
+  PILANI
+  GOA
+  HYDERABAD
+  DUBAI
+}

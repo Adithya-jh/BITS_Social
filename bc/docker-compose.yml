@@ -1,0 +1,83 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: bits_social
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  cockroach-node1:
+    image: cockroachdb/cockroach:v24.1.1
+    command: start --insecure --listen-addr=cockroach-node1:26257 --http-addr=cockroach-node1:8080 --join=cockroach-node1,cockroach-node2,cockroach-node3 --cache=25% --max-sql-memory=25%
+    restart: unless-stopped
+    ports:
+      - "26257:26257"
+      - "8081:8080"
+    volumes:
+      - cockroach-data1:/cockroach/cockroach-data
+
+  cockroach-node2:
+    image: cockroachdb/cockroach:v24.1.1
+    command: start --insecure --listen-addr=cockroach-node2:26257 --http-addr=cockroach-node2:8080 --join=cockroach-node1,cockroach-node2,cockroach-node3 --cache=25% --max-sql-memory=25%
+    restart: unless-stopped
+    ports:
+      - "26258:26257"
+      - "8082:8080"
+    volumes:
+      - cockroach-data2:/cockroach/cockroach-data
+
+  cockroach-node3:
+    image: cockroachdb/cockroach:v24.1.1
+    command: start --insecure --listen-addr=cockroach-node3:26257 --http-addr=cockroach-node3:8080 --join=cockroach-node1,cockroach-node2,cockroach-node3 --cache=25% --max-sql-memory=25%
+    restart: unless-stopped
+    ports:
+      - "26259:26257"
+      - "8083:8080"
+    volumes:
+      - cockroach-data3:/cockroach/cockroach-data
+
+  redis:
+    image: redis:7.2-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+
+  redpanda:
+    image: redpandadata/redpanda:v24.1.2
+    command:
+      - redpanda start
+      - --smp 1
+      - --memory 1G
+      - --overprovisioned
+      - --node-id 0
+      - --check=false
+      - --kafka-addr PLAINTEXT://0.0.0.0:9092,OUTSIDE://0.0.0.0:29092
+      - --advertise-kafka-addr PLAINTEXT://redpanda:9092,OUTSIDE://localhost:29092
+    restart: unless-stopped
+    ports:
+      - "29092:29092"
+      - "9092:9092"
+
+  minio:
+    image: minio/minio:RELEASE.2024-02-24T17-11-14Z
+    command: server /data --console-address ":9090"
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: minio123
+    ports:
+      - "9000:9000"
+      - "9090:9090"
+    volumes:
+      - minio-data:/data
+
+volumes:
+  postgres-data:
+  cockroach-data1:
+  cockroach-data2:
+  cockroach-data3:
+  minio-data:
